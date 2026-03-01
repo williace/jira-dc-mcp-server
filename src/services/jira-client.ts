@@ -14,7 +14,11 @@ let clientInstance: JiraClient | null = null;
 export class JiraClient {
   private client: AxiosInstance;
 
-  /** Reads JIRA_BASE_URL and JIRA_PAT from environment. Strips trailing slashes from the base URL. */
+  /**
+   * Reads JIRA_BASE_URL and JIRA_PAT from environment. Strips trailing slashes from the base URL.
+   * JIRA_PAT can be a plain PAT token (sent as Bearer) or prefixed with "BASIC:" to use Basic auth
+   * (e.g. "BASIC:dXNlcjpwYXNz" sends "Authorization: Basic dXNlcjpwYXNz").
+   */
   constructor() {
     const baseUrl = process.env.JIRA_BASE_URL?.replace(/\/$/, '');
     const pat = process.env.JIRA_PAT;
@@ -22,10 +26,14 @@ export class JiraClient {
     if (!baseUrl) throw new Error('JIRA_BASE_URL environment variable is required');
     if (!pat) throw new Error('JIRA_PAT environment variable is required');
 
+    const authHeader = pat.startsWith('BASIC:')
+      ? `Basic ${pat.slice(6)}`
+      : `Bearer ${pat}`;
+
     this.client = axios.create({
       baseURL: baseUrl,
       headers: {
-        'Authorization': `Bearer ${pat}`,
+        'Authorization': authHeader,
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },

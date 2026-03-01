@@ -24,9 +24,9 @@ vi.mock('axios', () => ({
   },
 }));
 
+import axios, { AxiosError } from 'axios';
 import { JiraClient } from '../../../src/services/jira-client.js';
 import { JiraApiError } from '../../../src/utils/errors.js';
-import { AxiosError } from 'axios';
 
 describe('JiraClient', () => {
   let client: JiraClient;
@@ -61,6 +61,30 @@ describe('JiraClient', () => {
       delete process.env.JIRA_PAT;
       try {
         expect(() => new JiraClient()).toThrow('JIRA_PAT environment variable is required');
+      } finally {
+        process.env.JIRA_PAT = origPat;
+      }
+    });
+
+    it('uses Bearer auth for plain PAT tokens', () => {
+      const origPat = process.env.JIRA_PAT;
+      process.env.JIRA_PAT = 'my-pat-token';
+      try {
+        new JiraClient();
+        const createCall = vi.mocked(axios.create).mock.lastCall?.[0];
+        expect((createCall?.headers as any)['Authorization']).toBe('Bearer my-pat-token');
+      } finally {
+        process.env.JIRA_PAT = origPat;
+      }
+    });
+
+    it('uses Basic auth when JIRA_PAT has BASIC: prefix', () => {
+      const origPat = process.env.JIRA_PAT;
+      process.env.JIRA_PAT = 'BASIC:YWRtaW46YWRtaW4=';
+      try {
+        new JiraClient();
+        const createCall = vi.mocked(axios.create).mock.lastCall?.[0];
+        expect((createCall?.headers as any)['Authorization']).toBe('Basic YWRtaW46YWRtaW4=');
       } finally {
         process.env.JIRA_PAT = origPat;
       }
