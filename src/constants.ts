@@ -20,7 +20,7 @@ export const DEFAULTS = {
   COMMENT_MAX_RESULTS: 20,
 } as const;
 
-// Available tool groups that operators can enable/disable via the TOOL_GROUPS env var
+// Available tool groups that operators can enable/disable via the ENABLED_TOOL_GROUPS env var
 export const TOOL_GROUPS = [
   'issues', 'projects', 'users', 'boards',
   'sprints', 'epics', 'metadata', 'attachments',
