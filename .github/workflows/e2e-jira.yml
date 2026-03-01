@@ -1,0 +1,88 @@
+name: E2E Tests (Jira DC)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 4 * * 0' # weekly: Sunday 4am UTC
+
+permissions: {}
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 45
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: jiradb
+          POSTGRES_USER: jira
+          POSTGRES_PASSWORD: jira
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U jira"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Start Jira DC container
+        run: |
+          docker run -d \
+            --name jira \
+            --network host \
+            -e ATL_JDBC_URL="jdbc:postgresql://localhost:5432/jiradb" \
+            -e ATL_JDBC_USER=jira \
+            -e ATL_JDBC_PASSWORD=jira \
+            -e ATL_DB_DRIVER="org.postgresql.Driver" \
+            -e ATL_DB_TYPE=postgres72 \
+            -e JVM_MINIMUM_MEMORY=1024m \
+            -e JVM_MAXIMUM_MEMORY=2048m \
+            atlassian/jira-software:9.17
+
+      - name: Wait for Jira to be ready
+        run: npx tsx tests/e2e/setup/wait-for-jira.ts
+        timeout-minutes: 15
+        env:
+          JIRA_BASE_URL: http://localhost:8080
+
+      - name: Complete Jira setup wizard
+        run: npx tsx tests/e2e/setup/complete-setup-wizard.ts
+        env:
+          JIRA_BASE_URL: http://localhost:8080
+          JIRA_LICENSE_KEY: ${{ secrets.JIRA_DC_LICENSE_KEY }}
+
+      - name: Seed test data
+        run: npx tsx tests/e2e/setup/seed-data.ts
+        env:
+          JIRA_BASE_URL: http://localhost:8080
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+        env:
+          JIRA_BASE_URL: http://localhost:8080
+
+      - name: Collect Jira logs on failure
+        if: failure()
+        run: docker logs jira > jira-container.log 2>&1
+
+      - name: Upload Jira logs
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: jira-logs
+          path: jira-container.log
+          retention-days: 7
