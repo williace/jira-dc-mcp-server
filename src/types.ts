@@ -1,3 +1,13 @@
+/**
+ * TypeScript interfaces matching the Jira Data Center REST API response shapes.
+ * All fields are optional because the API returns different subsets depending on
+ * the endpoint and query parameters.
+ */
+
+// ---------------------------------------------------------------------------
+// Core entity types
+// ---------------------------------------------------------------------------
+
 export interface JiraUser {
   self?: string;
   key?: string;
@@ -136,6 +146,10 @@ export interface JiraRemoteLink {
   };
 }
 
+// ---------------------------------------------------------------------------
+// Issue-related types
+// ---------------------------------------------------------------------------
+
 export interface JiraIssue {
   id?: string;
   self?: string;
@@ -186,6 +200,10 @@ export interface JiraIssue {
   };
 }
 
+// ---------------------------------------------------------------------------
+// Project-related types
+// ---------------------------------------------------------------------------
+
 export interface JiraProject {
   self?: string;
   id?: string;
@@ -231,6 +249,10 @@ export interface JiraField {
   clauseNames?: string[];
   schema?: { type?: string; system?: string; custom?: string; customId?: number };
 }
+
+// ---------------------------------------------------------------------------
+// Agile types (boards, sprints, epics)
+// ---------------------------------------------------------------------------
 
 export interface JiraBoard {
   id?: number;
@@ -284,6 +306,10 @@ export interface JiraEpic {
   done?: boolean;
   color?: { key?: string };
 }
+
+// ---------------------------------------------------------------------------
+// API response wrappers
+// ---------------------------------------------------------------------------
 
 export interface PaginatedResponse<T> {
   startAt: number;

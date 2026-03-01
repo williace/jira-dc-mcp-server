@@ -1,3 +1,8 @@
+/**
+ * Project management tools (13 tools). Read project details, manage components
+ * and versions (releases), and inspect project-level statuses. All operations
+ * use Jira Core REST API v2.
+ */
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { getJiraClient } from '../services/jira-client.js';
@@ -24,6 +29,7 @@ interface IssueTypeWithStatuses {
   statuses: JiraStatus[];
 }
 
+/** Registers all project-related tools on the MCP server. */
 export function registerProjectTools(server: McpServer): void {
   // ──────────────────────────────────────────────
   // 1. jira_list_projects

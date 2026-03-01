@@ -1,3 +1,9 @@
+/**
+ * Jira instance metadata tools (10 tools). Query system-level configuration:
+ * fields (system + custom), priorities, statuses, issue types, resolutions,
+ * saved JQL filters, and dashboards. Useful for discovering valid field names
+ * and values before creating/updating issues.
+ */
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { getJiraClient } from '../services/jira-client.js';
@@ -7,6 +13,7 @@ import { ResponseFormatSchema } from '../schemas/common.js';
 import { API_PATHS } from '../constants.js';
 import type { JiraField, JiraPriority, JiraStatus, JiraIssueType, JiraResolution, JiraFilter, JiraDashboard } from '../types.js';
 
+/** Registers all metadata-related tools on the MCP server. */
 export function registerMetadataTools(server: McpServer): void {
 
   // 1. jira_list_fields

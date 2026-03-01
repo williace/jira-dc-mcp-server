@@ -1,3 +1,9 @@
+/**
+ * Error handling utilities for converting Jira API errors into
+ * MCP-compatible error responses.
+ */
+
+/** Custom error class that carries Jira-specific error details (HTTP status, field-level errors). */
 export class JiraApiError extends Error {
   constructor(
     message: string,
@@ -10,6 +16,7 @@ export class JiraApiError extends Error {
   }
 }
 
+/** Converts any caught error into the MCP tool response format with `isError: true`. */
 export function buildErrorResult(error: unknown): {
   content: Array<{ type: 'text'; text: string }>;
   isError: true;
