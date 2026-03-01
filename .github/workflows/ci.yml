@@ -147,10 +147,9 @@ jobs:
         env:
           IMAGE: ghcr.io/${{ github.repository }}
           VERSION: ${{ steps.version.outputs.version }}
-          SHA: ${{ github.sha }}
         run: |
-          echo "Promoting $IMAGE:sha-$SHA → :$VERSION, :latest"
+          echo "Promoting $IMAGE:$VERSION-dev → :$VERSION, :latest"
           docker buildx imagetools create \
             --tag "$IMAGE:$VERSION" \
             --tag "$IMAGE:latest" \
-            "$IMAGE:sha-$SHA"
+            "$IMAGE:$VERSION-dev"
