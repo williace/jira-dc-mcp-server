@@ -109,7 +109,7 @@ jobs:
             ghcr.io/${{ github.repository }}:sha-${{ github.sha }}
 
       - name: Upload Trivy SARIF to GitHub Security
-        uses: github/codeql-action/upload-sarif@c4a7bc332abaec03596ff2803dd7f3ca3a238975 # v3
+        uses: github/codeql-action/upload-sarif@45580472a5bb82c4681c4ac726cfdb60060c2ee1 # v3
         if: always()
         continue-on-error: true # Requires GitHub Advanced Security for private repos
         with:
