@@ -3,6 +3,7 @@ updates:
   # Keep npm dependencies up to date
   - package-ecosystem: npm
     directory: /
+    target-branch: develop
     schedule:
       interval: weekly
       day: monday
@@ -16,6 +17,7 @@ updates:
   # Keep GitHub Actions pinned refs up to date
   - package-ecosystem: github-actions
     directory: /
+    target-branch: develop
     schedule:
       interval: weekly
       day: monday
@@ -24,6 +26,7 @@ updates:
   # Keep Docker base images up to date
   - package-ecosystem: docker
     directory: /
+    target-branch: develop
     schedule:
       interval: weekly
       day: monday
