@@ -34,5 +34,6 @@ jobs:
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@c4a7bc332abaec03596ff2803dd7f3ca3a238975 # v3
+        continue-on-error: true # Requires GitHub Advanced Security for private repos
         with:
           category: /language:${{ matrix.language }}
