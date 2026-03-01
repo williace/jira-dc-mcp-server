@@ -46,7 +46,7 @@ jobs:
 
   docker:
     needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -57,6 +57,21 @@ jobs:
       - name: Read version from package.json
         id: version
         run: echo "version=$(jq -r .version package.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Determine image tags
+        id: tags
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}
+          VERSION: ${{ steps.version.outputs.version }}
+          SHA: ${{ github.sha }}
+        run: |
+          TAGS="$IMAGE:sha-$SHA"
+          if [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+            TAGS="$TAGS,$IMAGE:$VERSION-dev"
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            TAGS="$TAGS,$IMAGE:$VERSION,$IMAGE:latest"
+          fi
+          echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
 
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
 
@@ -70,15 +85,13 @@ jobs:
         with:
           context: .
           push: true
-          tags: |
-            ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}-dev
-            ghcr.io/${{ github.repository }}:sha-${{ github.sha }}
+          tags: ${{ steps.tags.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
   trivy:
     needs: docker
-    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -120,36 +133,3 @@ jobs:
         with:
           sarif_file: trivy-results.sarif
           category: trivy-container
-
-  promote:
-    needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-
-      - name: Read version from package.json
-        id: version
-        run: echo "version=$(jq -r .version package.json)" >> "$GITHUB_OUTPUT"
-
-      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
-
-      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Retag image as production release
-        env:
-          IMAGE: ghcr.io/${{ github.repository }}
-          VERSION: ${{ steps.version.outputs.version }}
-        run: |
-          echo "Promoting $IMAGE:$VERSION-dev → :$VERSION, :latest"
-          docker buildx imagetools create \
-            --tag "$IMAGE:$VERSION" \
-            --tag "$IMAGE:latest" \
-            "$IMAGE:$VERSION-dev"
