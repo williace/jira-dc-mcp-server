@@ -1,3 +1,7 @@
+/**
+ * Epic management tools (5 tools). Get/update epics, list epic issues, and
+ * move issues between epics. All operations use the Jira Agile REST API v1.0.
+ */
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { getJiraClient } from '../services/jira-client.js';
@@ -8,6 +12,7 @@ import { PaginationSchema, ResponseFormatSchema } from '../schemas/common.js';
 import { API_PATHS } from '../constants.js';
 import type { JiraEpic, JiraIssue } from '../types.js';
 
+/** Registers all epic-related tools on the MCP server. */
 export function registerEpicTools(server: McpServer): void {
   // ---------------------------------------------------------------------------
   // 1. jira_get_epic

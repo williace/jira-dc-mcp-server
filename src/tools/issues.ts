@@ -1,3 +1,9 @@
+/**
+ * Issue management tools (18 tools). Covers the full issue lifecycle: CRUD
+ * operations, JQL search, workflow transitions, comments, worklogs, watchers,
+ * remote links, and agile ranking. Uses Jira Core REST API v2 for most
+ * operations and Agile REST API v1.0 for ranking.
+ */
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { getJiraClient } from '../services/jira-client.js';
@@ -8,6 +14,7 @@ import { PaginationSchema, ResponseFormatSchema, IssueIdOrKeySchema, JqlSchema, 
 import { API_PATHS, DEFAULTS } from '../constants.js';
 import type { JiraIssue, JiraSearchResult, JiraComment, JiraWorklog, JiraTransition, JiraRemoteLink, JiraUser } from '../types.js';
 
+/** Registers all issue-related tools on the MCP server. */
 export function registerIssueTools(server: McpServer): void {
   // ── 1. jira_create_issue ──────────────────────────────────────────────
   server.registerTool(

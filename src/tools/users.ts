@@ -1,3 +1,8 @@
+/**
+ * User tools (3 tools). Look up users by username, search users by name/email,
+ * and get the currently authenticated user (PAT owner). All operations use
+ * Jira Core REST API v2.
+ */
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { getJiraClient } from '../services/jira-client.js';
@@ -7,6 +12,7 @@ import { ResponseFormatSchema } from '../schemas/common.js';
 import { API_PATHS } from '../constants.js';
 import type { JiraUser } from '../types.js';
 
+/** Registers all user-related tools on the MCP server. */
 export function registerUserTools(server: McpServer): void {
 
   // 1. jira_get_user

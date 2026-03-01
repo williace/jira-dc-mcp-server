@@ -1,3 +1,8 @@
+/**
+ * Sprint management tools (7 tools). Create, read, update, and delete sprints.
+ * List sprint issues, move issues into sprints or back to the backlog. All
+ * operations use the Jira Agile REST API v1.0.
+ */
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { getJiraClient } from '../services/jira-client.js';
@@ -8,6 +13,7 @@ import { PaginationSchema, ResponseFormatSchema, SprintIdSchema, BoardIdSchema }
 import { API_PATHS } from '../constants.js';
 import type { JiraSprint, JiraIssue } from '../types.js';
 
+/** Registers all sprint-related tools on the MCP server. */
 export function registerSprintTools(server: McpServer): void {
   // ---------------------------------------------------------------------------
   // 1. jira_create_sprint

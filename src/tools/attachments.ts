@@ -1,3 +1,8 @@
+/**
+ * Attachment tools (3 tools). Get attachment metadata, delete attachments, and
+ * upload new attachments (via base64-encoded content). Uses multipart form
+ * upload with X-Atlassian-Token header to bypass XSRF protection.
+ */
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { getJiraClient } from '../services/jira-client.js';
@@ -7,6 +12,7 @@ import { ResponseFormatSchema, IssueIdOrKeySchema } from '../schemas/common.js';
 import { API_PATHS } from '../constants.js';
 import type { JiraAttachment } from '../types.js';
 
+/** Registers all attachment-related tools on the MCP server. */
 export function registerAttachmentTools(server: McpServer): void {
 
   // 1. jira_get_attachment

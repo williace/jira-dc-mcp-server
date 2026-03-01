@@ -1,3 +1,8 @@
+/**
+ * Agile board tools (7 tools). List/get boards, read board configuration
+ * (columns, estimation), and query board-level issues, backlog, sprints, and
+ * epics. All operations use the Jira Agile REST API v1.0.
+ */
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { getJiraClient } from '../services/jira-client.js';
@@ -8,6 +13,7 @@ import { PaginationSchema, ResponseFormatSchema, BoardIdSchema } from '../schema
 import { API_PATHS } from '../constants.js';
 import type { JiraBoard, JiraBoardConfiguration, JiraIssue, JiraSprint, JiraEpic } from '../types.js';
 
+/** Registers all board-related tools on the MCP server. */
 export function registerBoardTools(server: McpServer): void {
   // ---------------------------------------------------------------------------
   // 1. jira_list_boards
