@@ -7,6 +7,8 @@ import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
 
 const BASE = process.env.JIRA_BASE_URL ?? 'http://localhost:8080';
 const LICENSE = process.env.JIRA_LICENSE_KEY;
+const DB_HOST = process.env.DB_HOST ?? 'localhost';
+const DB_PORT = process.env.DB_PORT ?? '5432';
 
 if (!LICENSE) {
   console.error('JIRA_LICENSE_KEY env var is required');
@@ -54,8 +56,8 @@ async function step2_database(): Promise<void> {
   await client.post('/secure/SetupDatabase.jspa',
     'databaseOption=external&' +
     'databaseType=postgres72&' +
-    'jdbcHostname=localhost&' +
-    'jdbcPort=5432&' +
+    `jdbcHostname=${DB_HOST}&` +
+    `jdbcPort=${DB_PORT}&` +
     'jdbcDatabase=jiradb&' +
     'jdbcUsername=jira&' +
     'jdbcPassword=jira'
