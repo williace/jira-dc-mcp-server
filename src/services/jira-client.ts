@@ -1,12 +1,20 @@
+/**
+ * HTTP client for the Jira Data Center REST API.
+ * Wraps axios with PAT-based authentication, a 30-second timeout, and
+ * structured error mapping. Uses a lazy singleton pattern — the client is
+ * created on first use and reused for all subsequent requests.
+ */
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import { JiraApiError } from '../utils/errors.js';
 import type { JiraErrorResponse } from '../types.js';
 
+// Lazy singleton — initialized on first call to getJiraClient().
 let clientInstance: JiraClient | null = null;
 
 export class JiraClient {
   private client: AxiosInstance;
 
+  /** Reads JIRA_BASE_URL and JIRA_PAT from environment. Strips trailing slashes from the base URL. */
   constructor() {
     const baseUrl = process.env.JIRA_BASE_URL?.replace(/\/$/, '');
     const pat = process.env.JIRA_PAT;
@@ -61,6 +69,7 @@ export class JiraClient {
     }
   }
 
+  /** Used for file uploads (attachments). Sets X-Atlassian-Token to bypass Jira's XSRF check. */
   async postMultipart<T>(path: string, formData: FormData): Promise<T> {
     try {
       const response = await this.client.post<T>(path, formData, {
@@ -75,6 +84,7 @@ export class JiraClient {
     }
   }
 
+  /** Converts axios errors into JiraApiError with human-readable messages and actionable hints. */
   private mapError(error: unknown): JiraApiError {
     if (error instanceof AxiosError && error.response) {
       const status = error.response.status;
@@ -124,6 +134,7 @@ export class JiraClient {
   }
 }
 
+/** Returns the singleton JiraClient instance, creating it on first call. */
 export function getJiraClient(): JiraClient {
   if (!clientInstance) {
     clientInstance = new JiraClient();

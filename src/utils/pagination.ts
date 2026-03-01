@@ -1,3 +1,9 @@
+/**
+ * Pagination helpers for computing page metadata and formatting footer text.
+ * Used by all paginated tool responses to provide consistent
+ * "Showing X-Y of Z" messaging.
+ */
+
 export interface PaginationMeta {
   startAt: number;
   maxResults: number;

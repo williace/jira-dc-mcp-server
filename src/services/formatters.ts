@@ -1,3 +1,11 @@
+/**
+ * Response formatting functions that convert Jira API data into human-readable
+ * markdown or raw JSON. Each Jira entity type (issue, project, sprint, etc.)
+ * has a dedicated formatter. The formatToolResponse() function is the main
+ * entry point — it picks between JSON serialization and markdown based on the
+ * caller's response_format parameter, then truncates the output if it exceeds
+ * the character limit.
+ */
 import { CHARACTER_LIMIT } from '../constants.js';
 import type {
   JiraIssue, JiraProject, JiraUser, JiraComment, JiraWorklog,
@@ -8,12 +16,14 @@ import type {
 } from '../types.js';
 import { PaginationMeta, formatPaginationFooter } from '../utils/pagination.js';
 
+/** Truncates text that exceeds CHARACTER_LIMIT with a helpful hint about pagination. */
 export function truncateText(text: string): string {
   if (text.length <= CHARACTER_LIMIT) return text;
   return text.slice(0, CHARACTER_LIMIT) +
     '\n\n... [Response truncated. Use pagination or field filtering to retrieve more data.]';
 }
 
+/** Main entry point: picks JSON or markdown format, then truncates if needed. */
 export function formatToolResponse(
   data: unknown,
   format: ResponseFormat,
@@ -24,6 +34,8 @@ export function formatToolResponse(
     : markdownFn();
   return { content: [{ type: 'text' as const, text: truncateText(text) }] };
 }
+
+// ── Issue formatters ────────────────────────────────────────────────
 
 export function formatIssue(issue: JiraIssue): string {
   const f = issue.fields;
@@ -65,6 +77,8 @@ export function formatIssueList(issues: JiraIssue[], pagination: PaginationMeta)
   return lines.join('\n');
 }
 
+// ── Project formatters ──────────────────────────────────────────────
+
 export function formatProject(project: JiraProject): string {
   const lines: string[] = [];
   lines.push(`# ${project.name} (${project.key})`);
@@ -84,6 +98,8 @@ export function formatProjectList(projects: JiraProject[]): string {
   return lines.join('\n');
 }
 
+// ── User formatters ─────────────────────────────────────────────────
+
 export function formatUser(user: JiraUser): string {
   const lines: string[] = [];
   lines.push(`# ${user.displayName ?? user.name}`);
@@ -101,6 +117,8 @@ export function formatUserList(users: JiraUser[]): string {
   }
   return lines.join('\n');
 }
+
+// ── Comment & worklog formatters ────────────────────────────────────
 
 export function formatComment(comment: JiraComment): string {
   const author = comment.author?.displayName ?? comment.author?.name ?? 'Unknown';
@@ -144,6 +162,8 @@ export function formatTransitionList(transitions: JiraTransition[]): string {
   return lines.join('\n');
 }
 
+// ── Board formatters ────────────────────────────────────────────────
+
 export function formatBoard(board: JiraBoard): string {
   const lines: string[] = [];
   lines.push(`# ${board.name} (ID: ${board.id})`);
@@ -176,6 +196,8 @@ export function formatBoardConfig(config: JiraBoardConfiguration): string {
   return lines.join('\n');
 }
 
+// ── Sprint formatters ───────────────────────────────────────────────
+
 export function formatSprint(sprint: JiraSprint): string {
   const lines: string[] = [];
   lines.push(`# ${sprint.name} (ID: ${sprint.id})`);
@@ -195,6 +217,8 @@ export function formatSprintList(sprints: JiraSprint[], pagination: PaginationMe
   return lines.join('\n');
 }
 
+// ── Epic formatters ─────────────────────────────────────────────────
+
 export function formatEpic(epic: JiraEpic): string {
   const lines: string[] = [];
   lines.push(`# ${epic.name ?? epic.key} (${epic.key ?? `ID: ${epic.id}`})`);
@@ -211,6 +235,8 @@ export function formatEpicList(epics: JiraEpic[], pagination: PaginationMeta): s
   }
   return lines.join('\n');
 }
+
+// ── Metadata formatters (components, versions, fields, filters, dashboards)
 
 export function formatComponent(c: JiraComponent): string {
   const lines = [`# ${c.name} (ID: ${c.id})`];
@@ -293,6 +319,8 @@ export function formatDashboardList(dashboards: JiraDashboard[]): string {
   }
   return lines.join('\n');
 }
+
+// ── Attachment & link formatters ────────────────────────────────────
 
 export function formatAttachment(a: JiraAttachment): string {
   const lines = [`# ${a.filename} (ID: ${a.id})`];

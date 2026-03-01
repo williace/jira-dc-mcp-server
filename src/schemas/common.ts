@@ -1,3 +1,9 @@
+/**
+ * Reusable Zod validation schemas shared across tool definitions.
+ * These ensure consistent parameter validation and provide descriptions
+ * that MCP clients display to users.
+ */
+
 import { z } from 'zod';
 
 export const PaginationSchema = {
