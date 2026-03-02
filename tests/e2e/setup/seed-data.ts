@@ -5,6 +5,7 @@
  */
 import axios from 'axios';
 import { appendFileSync, writeFileSync } from 'fs';
+import { fileURLToPath } from 'url';
 
 const BASE = process.env.JIRA_BASE_URL ?? 'http://localhost:8080';
 
@@ -114,7 +115,7 @@ async function seedTestData(): Promise<SeedResult> {
   if (ghEnvFile) {
     appendFileSync(ghEnvFile, envLines.map(l => l + '\n').join(''));
   } else {
-    const localEnvPath = new URL('../.env.e2e', import.meta.url).pathname;
+    const localEnvPath = fileURLToPath(new URL('../.env.e2e', import.meta.url));
     writeFileSync(localEnvPath, envLines.join('\n') + '\n');
     console.log(`Wrote env file: ${localEnvPath}`);
   }

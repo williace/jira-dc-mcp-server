@@ -85,12 +85,15 @@ function logStep(step: string, status: number, res: AxiosResponse): void {
   const ok = status < 400;
   const icon = ok ? '✓' : '✗';
   console.log(`  ${icon} ${step} (HTTP ${status})`);
-  if (!ok && typeof res.data === 'string') {
-    const titleMatch = res.data.match(/<title>([^<]+)<\/title>/);
-    if (titleMatch) console.log(`    Page title: ${titleMatch[1].trim()}`);
-    // Check for error messages in the page
-    const errorMatch = res.data.match(/class="errMsg"[^>]*>([^<]+)</);
-    if (errorMatch) console.log(`    Error: ${errorMatch[1].trim()}`);
+  if (!ok) {
+    if (typeof res.data === 'string') {
+      const titleMatch = res.data.match(/<title>([^<]+)<\/title>/);
+      if (titleMatch) console.log(`    Page title: ${titleMatch[1].trim()}`);
+      // Check for error messages in the page
+      const errorMatch = res.data.match(/class="errMsg"[^>]*>([^<]+)</);
+      if (errorMatch) console.log(`    Error: ${errorMatch[1].trim()}`);
+    }
+    throw new Error(`${step} failed with HTTP ${status}`);
   }
 }
 
@@ -166,7 +169,9 @@ async function run(): Promise<void> {
   if (state === 'RUNNING') {
     console.log('Setup wizard completed successfully!');
   } else {
-    console.warn(`Warning: Expected RUNNING state but got ${state}`);
+    const message = `Expected RUNNING state but got ${state}`;
+    console.error(message);
+    throw new Error(message);
   }
 }
 

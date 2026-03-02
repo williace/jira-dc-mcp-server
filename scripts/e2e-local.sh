@@ -55,10 +55,9 @@ if [ "$TEST_ONLY" = false ]; then
   echo "Waiting for Jira to start (this can take 3-10 minutes)..."
   JIRA_BASE_URL=http://localhost:8080 npx tsx "$PROJECT_DIR/tests/e2e/setup/wait-for-jira.ts"
 
-  # Complete setup wizard (DB_HOST=postgres because Jira connects to postgres over docker network)
+  # Complete setup wizard (DB configuration is handled automatically by Docker ATL_JDBC_* env vars)
   echo "Running setup wizard..."
   JIRA_BASE_URL=http://localhost:8080 \
-  DB_HOST=postgres \
   JIRA_LICENSE_KEY="$JIRA_LICENSE_KEY" \
     npx tsx "$PROJECT_DIR/tests/e2e/setup/complete-setup-wizard.ts"
 
