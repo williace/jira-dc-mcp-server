@@ -1,12 +1,14 @@
 import { defineConfig } from 'vitest/config';
 import { existsSync, readFileSync } from 'fs';
-import { resolve } from 'path';
+import { fileURLToPath } from 'url';
 
 // Load .env.e2e (written by seed-data.ts for local runs)
-const envFile = resolve(__dirname, 'tests/e2e/.env.e2e');
+const envFile = fileURLToPath(new URL('tests/e2e/.env.e2e', import.meta.url));
 if (existsSync(envFile)) {
   for (const line of readFileSync(envFile, 'utf-8').split('\n')) {
-    const match = line.match(/^(\w+)=(.+)$/);
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const match = trimmed.match(/^(\w+)=(.*)$/);
     if (match) process.env[match[1]] = match[2];
   }
 }
