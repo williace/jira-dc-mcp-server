@@ -116,7 +116,7 @@ async function seedTestData(): Promise<SeedResult> {
     appendFileSync(ghEnvFile, envLines.map(l => l + '\n').join(''));
   } else {
     const localEnvPath = fileURLToPath(new URL('../.env.e2e', import.meta.url));
-    writeFileSync(localEnvPath, envLines.join('\n') + '\n');
+    writeFileSync(localEnvPath, envLines.join('\n') + '\n', { mode: 0o600 });
     console.log(`Wrote env file: ${localEnvPath}`);
   }
 
