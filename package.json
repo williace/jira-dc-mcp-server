@@ -13,7 +13,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "vitest run --config vitest.config.e2e.ts"
+    "test:e2e": "vitest run --config vitest.config.e2e.ts",
+    "test:e2e:local": "./scripts/e2e-local.sh"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
