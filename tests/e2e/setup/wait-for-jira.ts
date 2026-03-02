@@ -18,6 +18,23 @@ async function waitForJira(): Promise<void> {
       const res = await axios.get(`${JIRA_URL}/status`, { timeout: 5000 });
       const state = res.data?.state;
       if (state === 'RUNNING' || state === 'FIRST_RUN') {
+        // Verify the web layer is actually serving pages (not just the status endpoint)
+        try {
+          const webCheck = await axios.get(`${JIRA_URL}/secure/SetupMode!default.jspa`, {
+            timeout: 5000,
+            validateStatus: () => true,
+          });
+          if (webCheck.status >= 500) {
+            console.log(`Jira status API ready (${state}) but web layer returning ${webCheck.status}, waiting...`);
+            await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
+            continue;
+          }
+        } catch {
+          // If we can't reach the web layer, keep waiting
+          console.log(`Jira status API ready (${state}) but web layer not responding, waiting...`);
+          await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
+          continue;
+        }
         console.log(`Jira is ready (state: ${state}) after ${Math.round((Date.now() - start) / 1000)}s`);
         return;
       }

@@ -4,7 +4,8 @@
  * Writes seed data manifest to GITHUB_ENV for consumption by e2e tests.
  */
 import axios from 'axios';
-import { appendFileSync } from 'fs';
+import { appendFileSync, writeFileSync } from 'fs';
+import { fileURLToPath } from 'url';
 
 const BASE = process.env.JIRA_BASE_URL ?? 'http://localhost:8080';
 
@@ -89,29 +90,34 @@ async function seedTestData(): Promise<SeedResult> {
 
   const manifest: SeedResult = { projectKey: 'TEST', issueKeys, boardId, sprintId };
 
-  // Write manifest to GITHUB_ENV if running in CI
-  const envFile = process.env.GITHUB_ENV;
-  if (envFile) {
-    appendFileSync(envFile, `E2E_SEED_DATA=${JSON.stringify(manifest)}\n`);
-  }
-
-  // Also write PAT or Basic auth fallback
+  // Determine auth token (PAT preferred, Basic auth fallback)
+  let jiraPat: string;
   try {
     const pat = await client.post('/rest/pat/latest/tokens', {
       name: 'e2e-test-token',
       expirationDuration: 1,
     });
-    if (envFile) {
-      appendFileSync(envFile, `JIRA_PAT=${pat.data.rawToken}\n`);
-    }
+    jiraPat = pat.data.rawToken;
     console.log('Created PAT for e2e tests');
   } catch {
-    // PAT creation not supported; tests will use Basic Auth
-    const basicToken = Buffer.from('admin:admin').toString('base64');
-    if (envFile) {
-      appendFileSync(envFile, `JIRA_PAT=BASIC:${basicToken}\n`);
-    }
+    // PAT creation not supported; use Basic Auth via BASIC: prefix
+    jiraPat = `BASIC:${Buffer.from('admin:admin').toString('base64')}`;
     console.warn('PAT creation not supported; e2e tests will use Basic Auth');
+  }
+
+  const envLines = [
+    `E2E_SEED_DATA=${JSON.stringify(manifest)}`,
+    `JIRA_PAT=${jiraPat}`,
+  ];
+
+  // Write to GITHUB_ENV in CI, or to a local .env.e2e file otherwise
+  const ghEnvFile = process.env.GITHUB_ENV;
+  if (ghEnvFile) {
+    appendFileSync(ghEnvFile, envLines.map(l => l + '\n').join(''));
+  } else {
+    const localEnvPath = fileURLToPath(new URL('../.env.e2e', import.meta.url));
+    writeFileSync(localEnvPath, envLines.join('\n') + '\n', { mode: 0o600 });
+    console.log(`Wrote env file: ${localEnvPath}`);
   }
 
   console.log('Seed data:', JSON.stringify(manifest, null, 2));

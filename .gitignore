@@ -1,4 +1,7 @@
 node_modules/
 dist/
 .env
+.env.e2e
+tests/e2e/.env.e2e
 *.tsbuildinfo
+license.txt
