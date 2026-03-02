@@ -25,7 +25,8 @@ const cookieJar = new Map<string, string>();
 function captureCookies(res: AxiosResponse): void {
   const setCookie = res.headers['set-cookie'];
   if (!setCookie) return;
-  for (const raw of setCookie) {
+  const cookies = Array.isArray(setCookie) ? setCookie : [setCookie];
+  for (const raw of cookies) {
     const pair = raw.split(';')[0];
     const eq = pair.indexOf('=');
     if (eq > 0) cookieJar.set(pair.slice(0, eq), pair.slice(eq + 1));
@@ -72,6 +73,9 @@ function extractAtlTokenFromHtml(html: string): string | null {
 
 async function getTokenForStep(url: string): Promise<string> {
   const res = await client.get(url);
+  if (res.status >= 400) {
+    throw new Error(`Failed to load wizard step at ${url}: HTTP ${res.status} ${res.statusText}`);
+  }
   // Try HTML hidden field first
   if (typeof res.data === 'string') {
     const htmlToken = extractAtlTokenFromHtml(res.data);
