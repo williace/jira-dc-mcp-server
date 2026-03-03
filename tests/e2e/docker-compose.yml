@@ -41,6 +41,28 @@ services:
       retries: 30
       start_period: 180s
 
+  mcp-server:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    depends_on:
+      jira:
+        condition: service_healthy
+    environment:
+      JIRA_BASE_URL: http://jira:8080
+      # Basic auth with admin:admin — created by the setup wizard before this service starts
+      JIRA_PAT: "BASIC:YWRtaW46YWRtaW4="
+      TRANSPORT: http
+      PORT: "3000"
+    ports:
+      - "3001:3000"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
 volumes:
   pgdata:
   jiradata:

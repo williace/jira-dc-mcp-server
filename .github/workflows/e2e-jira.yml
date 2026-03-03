@@ -69,11 +69,37 @@ jobs:
         run: npx tsx tests/e2e/setup/seed-data.ts
         env:
           JIRA_BASE_URL: http://localhost:8080
+          MCP_SERVER_URL: http://localhost:3001
+
+      - name: Build MCP server
+        run: npm run build
+
+      - name: Start MCP server
+        run: |
+          JIRA_BASE_URL=http://localhost:8080 \
+          JIRA_PAT="BASIC:$(echo -n admin:admin | base64)" \
+          TRANSPORT=http \
+          PORT=3001 \
+          node dist/index.js &
+
+          # Wait for health check
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3001/health > /dev/null 2>&1; then
+              echo "MCP server is ready"
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              echo "MCP server did not start"
+              exit 1
+            fi
+            sleep 1
+          done
 
       - name: Run E2E tests
         run: npm run test:e2e
         env:
           JIRA_BASE_URL: http://localhost:8080
+          MCP_SERVER_URL: http://localhost:3001
 
       - name: Collect Jira logs on failure
         if: failure()

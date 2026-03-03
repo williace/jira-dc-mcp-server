@@ -5,3 +5,4 @@ dist/
 tests/e2e/.env.e2e
 *.tsbuildinfo
 license.txt
+.mcp.json
