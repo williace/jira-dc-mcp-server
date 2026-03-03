@@ -1,6 +1,6 @@
 /**
  * Automates the Jira DC first-run setup wizard via form POSTs.
- * This is fragile and tied to the pinned Jira version (9.17).
+ * This is fragile and tied to the pinned Jira version (10.3).
  *
  * Steps 1 (setup mode) and 2 (database) are auto-configured by the Docker image's
  * ATL_JDBC_* environment variables, so we start at step 3 (application properties).
