@@ -16,7 +16,7 @@ services:
       retries: 10
 
   jira:
-    image: atlassian/jira-software:9.17
+    image: atlassian/jira-software:10.3
     depends_on:
       postgres:
         condition: service_healthy

@@ -51,7 +51,7 @@ jobs:
             -e ATL_DB_TYPE=postgres72 \
             -e JVM_MINIMUM_MEMORY=1024m \
             -e JVM_MAXIMUM_MEMORY=2048m \
-            atlassian/jira-software:9.17
+            atlassian/jira-software:10.3
 
       - name: Wait for Jira to be ready
         run: npx tsx tests/e2e/setup/wait-for-jira.ts
