@@ -51,6 +51,7 @@ jobs:
             -e ATL_DB_TYPE=postgres72 \
             -e JVM_MINIMUM_MEMORY=1024m \
             -e JVM_MAXIMUM_MEMORY=2048m \
+            -e JVM_SUPPORT_RECOMMENDED_ARGS="-Datlassian.darkfeature.jira.onboarding.feature.disabled=true -Datlassian.authentication.legacy.mode=true" \
             atlassian/jira-software:10.3
 
       - name: Wait for Jira to be ready

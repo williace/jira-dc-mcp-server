@@ -29,7 +29,7 @@ services:
       JVM_MINIMUM_MEMORY: 1024m
       JVM_MAXIMUM_MEMORY: 2048m
       # Disable cloud-dependent features that can cause startup failures in Docker
-      JVM_SUPPORT_RECOMMENDED_ARGS: "-Datlassian.darkfeature.jira.onboarding.feature.disabled=true"
+      JVM_SUPPORT_RECOMMENDED_ARGS: "-Datlassian.darkfeature.jira.onboarding.feature.disabled=true -Datlassian.authentication.legacy.mode=true"
     ports:
       - "8080:8080"
     volumes:
