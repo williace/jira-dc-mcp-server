@@ -105,9 +105,13 @@ async function seedTestData(): Promise<SeedResult> {
     console.warn('PAT creation not supported; e2e tests will use Basic Auth');
   }
 
+  const mcpServerUrl = process.env.MCP_SERVER_URL ?? 'http://localhost:3001';
+
   const envLines = [
     `E2E_SEED_DATA=${JSON.stringify(manifest)}`,
     `JIRA_PAT=${jiraPat}`,
+    `JIRA_BASE_URL=${BASE}`,
+    `MCP_SERVER_URL=${mcpServerUrl}`,
   ];
 
   // Write to GITHUB_ENV in CI, or to a local .env.e2e file otherwise

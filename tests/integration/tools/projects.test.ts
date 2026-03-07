@@ -115,4 +115,46 @@ describe('Project Tools', () => {
       expect.objectContaining({ project: 'PROJ', name: 'Authentication' }),
     );
   });
+
+  // ── jira_delete_version (uses POST /removeAndSwap since Jira 10) ──
+
+  it('jira_delete_version deletes with move targets', async () => {
+    mockClient.post.mockResolvedValueOnce(undefined);
+
+    const result = await client.callTool({
+      name: 'jira_delete_version',
+      arguments: {
+        versionId: '10200',
+        moveFixIssuesTo: '10201',
+        moveAffectedIssuesTo: '10202',
+      },
+    });
+
+    expect(result.isError).toBeFalsy();
+    const text = (result.content as Array<{ type: string; text: string }>)[0].text;
+    expect(text).toContain('deleted successfully');
+    expect(text).toContain('10201');
+    expect(text).toContain('10202');
+    expect(mockClient.post).toHaveBeenCalledWith(
+      '/rest/api/2/version/10200/removeAndSwap',
+      { moveFixIssuesTo: '10201', moveAffectedIssuesTo: '10202' },
+    );
+  });
+
+  it('jira_delete_version deletes without move targets', async () => {
+    mockClient.post.mockResolvedValueOnce(undefined);
+
+    const result = await client.callTool({
+      name: 'jira_delete_version',
+      arguments: { versionId: '10200' },
+    });
+
+    expect(result.isError).toBeFalsy();
+    const text = (result.content as Array<{ type: string; text: string }>)[0].text;
+    expect(text).toContain('deleted successfully');
+    expect(mockClient.post).toHaveBeenCalledWith(
+      '/rest/api/2/version/10200/removeAndSwap',
+      {},
+    );
+  });
 });

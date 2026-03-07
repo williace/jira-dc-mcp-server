@@ -696,16 +696,15 @@ Error handling:
     async ({ versionId, moveFixIssuesTo, moveAffectedIssuesTo }) => {
       try {
         const client = getJiraClient();
-        const params = new URLSearchParams();
+        const body: Record<string, string> = {};
         if (moveFixIssuesTo !== undefined) {
-          params.set('moveFixIssuesTo', moveFixIssuesTo);
+          body.moveFixIssuesTo = moveFixIssuesTo;
         }
         if (moveAffectedIssuesTo !== undefined) {
-          params.set('moveAffectedIssuesTo', moveAffectedIssuesTo);
+          body.moveAffectedIssuesTo = moveAffectedIssuesTo;
         }
-        const query = params.toString();
-        const path = `${API_PATHS.CORE}/version/${encodeURIComponent(versionId)}${query ? `?${query}` : ''}`;
-        await client.delete(path);
+        const path = `${API_PATHS.CORE}/version/${encodeURIComponent(versionId)}/removeAndSwap`;
+        await client.post(path, body);
         return {
           content: [
             {

@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 #
-# Runs the full E2E test suite against a local Jira DC instance.
+# Runs the full E2E test suite against a local Jira DC instance with the
+# MCP server running alongside it.
+#
+# Infrastructure:
+#   - PostgreSQL on port 5432
+#   - Jira DC on port 8080
+#   - MCP server on port 3001
 #
 # Usage:
 #   ./scripts/e2e-local.sh              # full run: start → setup → seed → test → stop
@@ -47,9 +53,9 @@ if [ "$TEST_ONLY" = false ]; then
     exit 1
   fi
 
-  # Start containers
-  echo "Starting Jira DC + PostgreSQL..."
-  docker compose -f "$COMPOSE_FILE" up -d
+  # Start Jira + PostgreSQL first (MCP server starts after setup)
+  echo "Starting PostgreSQL + Jira DC..."
+  docker compose -f "$COMPOSE_FILE" up -d postgres jira
 
   # Wait for Jira to be ready
   echo "Waiting for Jira to start (this can take 3-10 minutes)..."
@@ -61,11 +67,36 @@ if [ "$TEST_ONLY" = false ]; then
   JIRA_LICENSE_KEY="$JIRA_LICENSE_KEY" \
     npx tsx "$PROJECT_DIR/tests/e2e/setup/complete-setup-wizard.ts"
 
-  # Seed test data (writes tests/e2e/.env.e2e)
+  # Seed test data (writes tests/e2e/.env.e2e with JIRA_BASE_URL, JIRA_PAT, etc.)
   echo "Seeding test data..."
-  JIRA_BASE_URL=http://localhost:8080 npx tsx "$PROJECT_DIR/tests/e2e/setup/seed-data.ts"
+  JIRA_BASE_URL=http://localhost:8080 \
+  MCP_SERVER_URL=http://localhost:3001 \
+    npx tsx "$PROJECT_DIR/tests/e2e/setup/seed-data.ts"
+
+  # Now start the MCP server (admin account exists, auth will work)
+  echo "Building and starting MCP server on port 3001..."
+  docker compose -f "$COMPOSE_FILE" up -d --build mcp-server
+
+  # Wait for MCP server health check
+  echo "Waiting for MCP server to be ready..."
+  for i in $(seq 1 30); do
+    if curl -sf http://localhost:3001/health > /dev/null 2>&1; then
+      echo "MCP server is ready."
+      break
+    fi
+    if [ "$i" -eq 30 ]; then
+      echo "Error: MCP server did not become healthy within 30s"
+      docker compose -f "$COMPOSE_FILE" logs mcp-server
+      exit 1
+    fi
+    sleep 1
+  done
 fi
+
+# Build (mcp-server.test.ts spawns dist/index.js for stdio transport tests)
+echo "Building..."
+npm run build
 
 # Run E2E tests (vitest.config.e2e.ts loads .env.e2e automatically)
 echo "Running E2E tests..."
-JIRA_BASE_URL=http://localhost:8080 npm run test:e2e
+npm run test:e2e

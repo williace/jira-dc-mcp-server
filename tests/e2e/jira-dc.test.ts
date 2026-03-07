@@ -121,6 +121,37 @@ describe('E2E: Project operations', () => {
   });
 });
 
+describe('E2E: Version operations', () => {
+  it('should create and delete a version', async () => {
+    // Create
+    const createResult = await client.callTool({
+      name: 'jira_create_version',
+      arguments: {
+        projectKey: seed.projectKey,
+        name: 'E2E Temporary Version',
+      },
+    });
+    const createText = getText(createResult);
+    expect(createText).toContain('E2E Temporary Version');
+
+    // Find the version ID from project versions
+    const versionsResult = await client.callTool({
+      name: 'jira_get_project_versions',
+      arguments: { projectIdOrKey: seed.projectKey, response_format: 'json' },
+    });
+    const versions = JSON.parse(getText(versionsResult));
+    const testVersion = versions.find((v: any) => v.name === 'E2E Temporary Version');
+    expect(testVersion).toBeDefined();
+
+    // Delete via removeAndSwap
+    const deleteResult = await client.callTool({
+      name: 'jira_delete_version',
+      arguments: { versionId: String(testVersion.id) },
+    });
+    expect(getText(deleteResult)).toContain('deleted successfully');
+  });
+});
+
 describe('E2E: Board and Sprint operations', () => {
   it('should list boards and find the test board', async () => {
     const result = await client.callTool({
