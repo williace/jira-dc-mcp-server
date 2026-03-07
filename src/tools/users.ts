@@ -77,6 +77,9 @@ Examples:
   - Search by name: { query: "john" }
   - Search by email domain: { query: "@company.com" }
 
+Note: Jira 10+ limits user search to a maximum of 100 results. Use more specific
+search queries to narrow results if needed.
+
 Error handling:
   - 403: No permission to browse users.`,
       inputSchema: z.object({

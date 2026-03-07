@@ -16,7 +16,7 @@ services:
       retries: 10
 
   jira:
-    image: atlassian/jira-software:9.17
+    image: atlassian/jira-software:10.3
     depends_on:
       postgres:
         condition: service_healthy
@@ -29,7 +29,7 @@ services:
       JVM_MINIMUM_MEMORY: 1024m
       JVM_MAXIMUM_MEMORY: 2048m
       # Disable cloud-dependent features that can cause startup failures in Docker
-      JVM_SUPPORT_RECOMMENDED_ARGS: "-Datlassian.darkfeature.jira.onboarding.feature.disabled=true"
+      JVM_SUPPORT_RECOMMENDED_ARGS: "-Datlassian.darkfeature.jira.onboarding.feature.disabled=true -Datlassian.authentication.legacy.mode=true"
     ports:
       - "8080:8080"
     volumes:
@@ -40,6 +40,28 @@ services:
       timeout: 10s
       retries: 30
       start_period: 180s
+
+  mcp-server:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    depends_on:
+      jira:
+        condition: service_healthy
+    environment:
+      JIRA_BASE_URL: http://jira:8080
+      # Basic auth with admin:admin — created by the setup wizard before this service starts
+      JIRA_PAT: "BASIC:YWRtaW46YWRtaW4="
+      TRANSPORT: http
+      PORT: "3000"
+    ports:
+      - "3001:3000"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
 
 volumes:
   pgdata:
