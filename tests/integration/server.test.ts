@@ -57,7 +57,7 @@ describe('Server – tool group filtering', () => {
 
     try {
       const { tools } = await client.listTools();
-      expect(tools.length).toBe(66);
+      expect(tools.length).toBe(70);
     } finally {
       await cleanup();
     }
@@ -92,8 +92,8 @@ describe('Server – tool group filtering', () => {
 
     try {
       const { tools } = await client.listTools();
-      // users = 3, issues = 18  =>  21
-      expect(tools.length).toBe(21);
+      // users = 3, issues = 20  =>  23
+      expect(tools.length).toBe(23);
 
       const names = tools.map((t) => t.name);
       expect(names).toContain('jira_get_user');

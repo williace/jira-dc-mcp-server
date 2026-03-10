@@ -250,6 +250,14 @@ export interface JiraField {
   schema?: { type?: string; system?: string; custom?: string; customId?: number };
 }
 
+export interface JiraIssueLinkType {
+  id?: string;
+  name?: string;
+  inward?: string;
+  outward?: string;
+  self?: string;
+}
+
 // ---------------------------------------------------------------------------
 // Agile types (boards, sprints, epics)
 // ---------------------------------------------------------------------------

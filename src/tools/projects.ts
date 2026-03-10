@@ -718,4 +718,48 @@ Error handling:
       }
     }
   );
+
+  // ──────────────────────────────────────────────
+  // 14. jira_get_project_issue_types
+  // ──────────────────────────────────────────────
+  server.tool(
+    'jira_get_project_issue_types',
+    `Get the issue types available for creating issues in a specific project.
+
+Args:
+  projectIdOrKey: Project key or numeric ID (e.g., "PROJ").
+  response_format: Response format ("markdown" or "json", default "markdown").
+
+Returns:
+  List of issue types valid for this project, with ID, name, description, and subtask flag.
+
+Examples:
+  - Get types: { projectIdOrKey: "PROJ" }
+  - Use with jira_create_issue to find valid issueType names for a project.
+
+Error handling:
+  Returns error if the project does not exist or authentication is invalid.`,
+    {
+      projectIdOrKey: ProjectIdOrKeySchema,
+      response_format: ResponseFormatSchema,
+    },
+    {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
+    async ({ projectIdOrKey, response_format }) => {
+      try {
+        const client = getJiraClient();
+        const result = await client.get<{ issueTypes: JiraIssueType[] }>(
+          `${API_PATHS.CORE}/issue/createmeta/${encodeURIComponent(projectIdOrKey)}/issuetypes`,
+        );
+        const types = result.issueTypes ?? [];
+        return formatToolResponse(types, response_format, () => formatSimpleList('Issue Types', types));
+      } catch (error) {
+        return buildErrorResult(error);
+      }
+    }
+  );
 }

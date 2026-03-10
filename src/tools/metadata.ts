@@ -11,7 +11,7 @@ import { formatToolResponse, formatFieldList, formatSimpleList, formatFilter, fo
 import { buildErrorResult } from '../utils/errors.js';
 import { ResponseFormatSchema } from '../schemas/common.js';
 import { API_PATHS } from '../constants.js';
-import type { JiraField, JiraPriority, JiraStatus, JiraIssueType, JiraResolution, JiraFilter, JiraDashboard } from '../types.js';
+import type { JiraField, JiraPriority, JiraStatus, JiraIssueType, JiraResolution, JiraFilter, JiraDashboard, JiraIssueLinkType } from '../types.js';
 
 /** Registers all metadata-related tools on the MCP server. */
 export function registerMetadataTools(server: McpServer): void {
@@ -437,5 +437,53 @@ Examples:
         return buildErrorResult(error);
       }
     }
+  );
+
+  // 11. jira_get_issue_link_types
+  server.registerTool(
+    'jira_get_issue_link_types',
+    {
+      title: 'Get Issue Link Types',
+      description: `List all issue link types available in the Jira instance.
+
+Args:
+  - response_format (string, optional): "markdown" (default) or "json"
+
+Returns: List of link types with ID, name, and inward/outward direction labels.
+
+Examples:
+  - List link types: {}
+  - Use with jira_link_issues to find valid linkTypeName values and understand their directionality.
+
+Error handling:
+  - 403: No permission to view link types.`,
+      inputSchema: z.object({
+        response_format: ResponseFormatSchema,
+      }).strict(),
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
+    },
+    async (params) => {
+      try {
+        const client = getJiraClient();
+        const result = await client.get<{ issueLinkTypes: JiraIssueLinkType[] }>(
+          `${API_PATHS.CORE}/issueLinkType`,
+        );
+        const types = result.issueLinkTypes ?? [];
+        return formatToolResponse(types, params.response_format, () => {
+          const lines = [`# Issue Link Types (${types.length})\n`];
+          for (const t of types) {
+            lines.push(`- **${t.name}** (ID: ${t.id}) — inward: "${t.inward ?? ''}", outward: "${t.outward ?? ''}"`);
+          }
+          return lines.join('\n');
+        });
+      } catch (error) {
+        return buildErrorResult(error);
+      }
+    },
   );
 }

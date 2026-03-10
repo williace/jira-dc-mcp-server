@@ -1070,4 +1070,109 @@ Error handling:
       }
     },
   );
+
+  // ── 19. jira_assign_issue ─────────────────────────────────────────────
+  server.registerTool(
+    'jira_assign_issue',
+    {
+      title: 'Assign Issue',
+      description: `Assign or unassign a Jira issue.
+
+Args:
+  - issueIdOrKey (string, required): Issue key (e.g., "PROJ-123") or numeric ID
+  - assignee (string | null, required): Username to assign the issue to, or null to unassign
+
+Returns: Confirmation that the issue was assigned or unassigned.
+
+Examples:
+  - Assign: { issueIdOrKey: "PROJ-123", assignee: "jsmith" }
+  - Unassign: { issueIdOrKey: "PROJ-123", assignee: null }
+
+Error handling:
+  - 404: Issue not found or user does not exist.
+  - 403: No permission to assign this issue.`,
+      inputSchema: z.object({
+        issueIdOrKey: IssueIdOrKeySchema,
+        assignee: z.string().nullable().describe('Username to assign the issue to, or null to unassign.'),
+      }).strict(),
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
+    },
+    async (params) => {
+      try {
+        const client = getJiraClient();
+        await client.put<void>(
+          `${API_PATHS.CORE}/issue/${params.issueIdOrKey}/assignee`,
+          { name: params.assignee },
+        );
+        const msg = params.assignee
+          ? `Issue ${params.issueIdOrKey} assigned to "${params.assignee}".`
+          : `Issue ${params.issueIdOrKey} unassigned.`;
+        return { content: [{ type: 'text' as const, text: msg }] };
+      } catch (error) {
+        return buildErrorResult(error);
+      }
+    },
+  );
+
+  // ── 20. jira_link_issues ──────────────────────────────────────────────
+  server.registerTool(
+    'jira_link_issues',
+    {
+      title: 'Link Issues',
+      description: `Create a directional link between two Jira issues.
+
+Args:
+  - linkTypeName (string, required): Link type name (e.g., "Blocks", "Relates"). Use jira_get_issue_link_types to see available types and their inward/outward labels.
+  - inwardIssueKey (string, required): Key of the inward issue (the issue receiving the relationship, e.g. "is blocked by").
+  - outwardIssueKey (string, required): Key of the outward issue (the issue initiating the relationship, e.g. "blocks").
+  - comment (string, optional): Comment to add when creating the link.
+
+Returns: Confirmation that the link was created.
+
+Examples:
+  - Block: { linkTypeName: "Blocks", inwardIssueKey: "PROJ-10", outwardIssueKey: "PROJ-5" }
+  - Relate: { linkTypeName: "Relates", inwardIssueKey: "PROJ-10", outwardIssueKey: "PROJ-11", comment: "See also" }
+
+Error handling:
+  - 400: Invalid link type name or issue keys.
+  - 404: One or both issues not found.
+  - 403: No permission to link issues.`,
+      inputSchema: z.object({
+        linkTypeName: z.string().min(1).describe('Link type name (e.g., "Blocks", "Relates"). Use jira_get_issue_link_types to list available types.'),
+        inwardIssueKey: z.string().min(1).describe('Key of the inward issue (e.g., "PROJ-123").'),
+        outwardIssueKey: z.string().min(1).describe('Key of the outward issue (e.g., "PROJ-456").'),
+        comment: z.string().optional().describe('Comment to add when creating the link.'),
+      }).strict(),
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: true,
+      },
+    },
+    async (params) => {
+      try {
+        const client = getJiraClient();
+        const body: Record<string, unknown> = {
+          type: { name: params.linkTypeName },
+          inwardIssue: { key: params.inwardIssueKey },
+          outwardIssue: { key: params.outwardIssueKey },
+        };
+        if (params.comment) {
+          body.comment = { body: params.comment };
+        }
+        await client.post<void>(`${API_PATHS.CORE}/issueLink`, body);
+        return {
+          content: [{ type: 'text' as const, text: `Link created: ${params.inwardIssueKey} "${params.linkTypeName}" ${params.outwardIssueKey}.` }],
+        };
+      } catch (error) {
+        return buildErrorResult(error);
+      }
+    },
+  );
 }
